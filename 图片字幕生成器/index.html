@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>图片字幕生成工具@么么哒哒</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="site-title">图片字幕生成工具@么么哒哒</div>
+  <div class="app">
+    <div class="left">
+      <div class="card">
+        <div class="card-title">上传图片</div>
+        <div class="upload-row">
+          <input id="fileInput" type="file" accept=".jpg,.jpeg,.png,.webp">
+          <div id="fileName" class="file-name"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">字幕设置</div>
+        <div class="grid">
+          <label class="field">
+            <span>字幕高度</span>
+            <div class="input-inline">
+              <input id="subtitleHeight" type="number" min="24" max="200" value="80">
+              <span class="suffix">px</span>
+            </div>
+          </label>
+          <label class="field">
+            <span>字体大小</span>
+            <div class="input-inline">
+              <input id="fontSize" type="number" min="12" max="120" value="40">
+              <span class="suffix">px</span>
+            </div>
+          </label>
+          <label class="field">
+            <span>字体颜色</span>
+            <div class="color-row">
+              <input id="fontColorPicker" type="color" value="#FFFFFF">
+              <input id="fontColorHex" type="text" value="#FFFFFF">
+            </div>
+          </label>
+          <label class="field">
+            <span>轮廓颜色</span>
+            <div class="color-row">
+              <input id="strokeColorPicker" type="color" value="#000000">
+              <input id="strokeColorHex" type="text" value="#000000">
+            </div>
+          </label>
+          <label class="field">
+            <span>字体样式</span>
+            <select id="fontFamily">
+              <option value="Microsoft YaHei, Arial, Helvetica, sans-serif">微软雅黑</option>
+              <option value="Arial, Helvetica, sans-serif">Arial</option>
+              <option value="Helvetica, Arial, sans-serif">Helvetica</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>字体粗细</span>
+            <select id="fontWeight">
+              <option value="400">正常</option>
+              <option value="700">加粗</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>水印大小</span>
+            <div class="input-inline">
+              <input id="watermarkSize" type="number" min="16" max="72" value="35">
+              <span class="suffix">px</span>
+            </div>
+          </label>
+          <label class="field">
+            <span>水印位置</span>
+            <select id="watermarkPos">
+              <option value="top-left">上左</option>
+              <option value="top-center" selected>上中</option>
+              <option value="top-right">上右</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">字幕内容</div>
+        <textarea id="captionText" rows="8" placeholder="每行一条字幕"></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="btnGenerate" class="primary">生成字幕图片</button>
+        <button id="btnSave" class="secondary">保存图片</button>
+      </div>
+      <div id="status" class="status"></div>
+      <div id="warning" class="warning"></div>
+    </div>
+
+    <div class="right">
+      <div class="card preview-card">
+        <div class="card-title">预览</div>
+        <div id="previewWrap" class="preview-wrap">
+          <canvas id="canvas"></canvas>
+        </div>
+        <div class="preview-link">
+          <a id="previewLink" href="#" target="_blank">预览地址</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="./app.js"></script>
+</body>
+<html>
