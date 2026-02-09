@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "图片字幕生成器/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "图片字幕生成器/index.html" },
+    { "src": "/(.*)", "dest": "图片字幕生成器/$1" }
+  ]
+}
