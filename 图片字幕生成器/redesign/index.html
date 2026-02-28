@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CaptionCraft - 智能图片字幕生成器</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Film Grain Overlay -->
+    <div class="film-grain"></div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-brand">
+            <span class="nav-logo">CC</span>
+            <span class="nav-name">CaptionCraft</span>
+        </div>
+        <div class="nav-links">
+            <a href="#features">功能</a>
+            <a href="#how-it-works">如何使用</a>
+            <a href="#demo">试用</a>
+        </div>
+        <button class="nav-cta">开始使用</button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-tag">
+                <span class="tag-line"></span>
+                <span>AI 驱动的字幕生成</span>
+            </div>
+            <h1 class="hero-title">
+                <span class="title-line">为你的照片</span>
+                <span class="title-line title-line-accent">赋予声音</span>
+            </h1>
+            <p class="hero-subtitle">
+                智能识别图片内容，一键生成精美字幕。<br>
+                让每一张照片都能讲述自己的故事。
+            </p>
+            <div class="hero-actions">
+                <button class="btn btn-primary">
+                    <span>上传图片</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                </button>
+                <button class="btn btn-secondary">查看示例</button>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="photo-frame">
+                <div class="photo-frame-inner">
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80" alt="Mountain landscape">
+                    <div class="photo-caption">
+                        <span class="caption-text"></span>
+                        <span class="caption-cursor">|</span>
+                    </div>
+                </div>
+                <div class="photo-frame-border"></div>
+            </div>
+            <div class="floating-tag tag-1">
+                <span class="tag-icon">✦</span>
+                <span>智能识别</span>
+            </div>
+            <div class="floating-tag tag-2">
+                <span class="tag-icon">◉</span>
+                <span>98.5% 准确率</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-header">
+            <span class="section-number">01</span>
+            <h2 class="section-title">功能特点</h2>
+            <p class="section-desc">专业级的字幕生成工具，让图片表达更有力</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card" data-feature="1">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="8" y="12" width="32" height="24" rx="2"/>
+                        <circle cx="24" cy="24" r="6"/>
+                        <path d="M8 20l8-8 16 16 8-8"/>
+                    </svg>
+                </div>
+                <h3 class="feature-title">智能识别</h3>
+                <p class="feature-desc">基于先进的计算机视觉技术，自动识别图片中的场景、物体和情感。</p>
+            </div>
+            <div class="feature-card" data-feature="2">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M14 8h20v32H14z"/>
+                        <path d="M18 12h12M18 16h12M18 20h8"/>
+                        <circle cx="28" cy="32" r="4"/>
+                    </svg>
+                </div>
+                <h3 class="feature-title">多样风格</h3>
+                <p class="feature-desc">从诗意文艺到简洁直接，多种字幕风格满足不同场景需求。</p>
+            </div>
+            <div class="feature-card" data-feature="3">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 12h24v24H12z"/>
+                        <path d="M12 18h24M18 12v24"/>
+                        <circle cx="24" cy="24" r="2"/>
+                    </svg>
+                </div>
+                <h3 class="feature-title">精准排版</h3>
+                <p class="feature-desc">智能分析图片构图，自动选择最佳字幕位置和样式。</p>
+            </div>
+            <div class="feature-card" data-feature="4">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M24 4v8M24 36v8M4 24h8M36 24h8"/>
+                        <circle cx="24" cy="24" r="10"/>
+                        <path d="M24 18v12l6-6"/>
+                    </svg>
+                </div>
+                <h3 class="feature-title">一键导出</h3>
+                <p class="feature-desc">高清导出带字幕图片，支持多种格式和分辨率。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-header">
+            <span class="section-number">02</span>
+            <h2 class="section-title">如何使用</h2>
+            <p class="section-desc">简单四步，让照片会说话</p>
+        </div>
+        <div class="steps-container">
+            <div class="step" data-step="1">
+                <div class="step-number">01</div>
+                <div class="step-content">
+                    <h3>上传图片</h3>
+                    <p>拖拽或点击上传你的照片，支持 JPG、PNG、WebP 格式</p>
+                </div>
+                <div class="step-visual">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="8" y="12" width="48" height="40" rx="4"/>
+                            <circle cx="24" cy="28" r="6"/>
+                            <path d="M8 44l16-16 12 12 20-20"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">02</div>
+                <div class="step-content">
+                    <h3>AI 分析</h3>
+                    <p>我们的 AI 会分析图片内容，识别场景、物体和氛围</p>
+                </div>
+                <div class="step-visual">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="12" y="8" width="40" height="48" rx="4"/>
+                            <circle cx="32" cy="28" r="10"/>
+                            <path d="M26 28h12M32 22v12"/>
+                            <path d="M16 48h32" stroke-dasharray="4 4"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-number">03</div>
+                <div class="step-content">
+                    <h3>生成字幕</h3>
+                    <p>选择你喜欢的字幕风格，一键生成专属文字</p>
+                </div>
+                <div class="step-visual">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 16h40v32H12z"/>
+                            <path d="M16 24h32M16 32h24M16 40h20"/>
+                            <circle cx="48" cy="44" r="8"/>
+                            <path d="M44 44l4 4 8-8"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-number">04</div>
+                <div class="step-content">
+                    <h3>导出分享</h3>
+                    <p>调整位置和样式，导出高清图片，分享到社交平台</p>
+                </div>
+                <div class="step-visual">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="32" cy="32" r="24"/>
+                            <path d="M20 32l8 8 16-16"/>
+                            <path d="M32 8v8M32 48v8M8 32h8M48 32h8"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="demo" id="demo">
+        <div class="section-header light">
+            <span class="section-number">03</span>
+            <h2 class="section-title">立即试用</h2>
+            <p class="section-desc">上传你的第一张照片，体验 AI 字幕生成</p>
+        </div>
+        <div class="demo-container">
+            <div class="upload-zone">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="12" y="20" width="56" height="48" rx="8"/>
+                            <circle cx="32" cy="40" r="10"/>
+                            <path d="M12 56l20-20 16 16 24-24"/>
+                            <path d="M52 16v16" class="upload-arrow"/>
+                            <path d="M44 24l8-8 8 8" class="upload-arrow"/>
+                        </svg>
+                    </div>
+                    <h3 class="upload-title">拖拽图片到此处</h3>
+                    <p class="upload-desc">或点击选择文件，支持 JPG、PNG、WebP</p>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                </div>
+            </div>
+            <div class="demo-preview" id="demoPreview" style="display: none;">
+                <div class="preview-container">
+                    <div class="preview-image-wrapper">
+                        <img id="previewImage" src="" alt="Preview">
+                        <div class="preview-caption" id="previewCaption">
+                            正在生成字幕<span class="loading-dots">...</span>
+                        </div>
+                    </div>
+                    <div class="preview-actions">
+                        <button class="btn btn-outline" id="changeImage">更换图片</button>
+                        <button class="btn btn-primary" id="regenerateCaption">重新生成</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="cta-content">
+            <h2 class="cta-title">准备好让你的照片<br>讲述更精彩的故事了吗？</h2>
+            <p class="cta-subtitle">免费开始使用，无需注册</p>
+            <button class="btn btn-primary btn-large">
+                <span>开始创作</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </button>
+        </div>
+        <div class="cta-decoration">
+            <div class="decoration-circle"></div>
+            <div class="decoration-circle"></div>
+            <div class="decoration-circle"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-brand">
+            <span class="footer-logo">CC</span>
+            <span class="footer-name">CaptionCraft</span>
+        </div>
+        <p class="footer-copy">© 2024 CaptionCraft. 让每一张照片都有故事。</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

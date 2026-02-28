@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(cat:*)",
+      "Bash(ls -la:*)",
+      "WebSearch",
+      "Bash(copy:*)",
+      "Bash(dir:*)"
+    ]
+  }
+}
