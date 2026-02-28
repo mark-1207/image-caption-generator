@@ -1,0 +1,21 @@
+# Local config
+.claude/
+
+# Backup directories
+redesign/
+v2/
+
+# Old files
+app.js
+style.css
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
