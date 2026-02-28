@@ -1,327 +1,642 @@
 /**
- * CaptionCraft - Interactive Scripts
- * Darkroom aesthetic with smooth interactions
+ * CaptionCraft v2 - 图片字幕生成器
+ * Fully functional implementation
  */
 
+// ==========================================
+// State Management
+// ==========================================
+const state = {
+    image: null,
+    imageFile: null,
+    settings: {
+        barHeight: 80,
+        fontSize: 40,
+        fontColor: '#ffffff',
+        strokeColor: '#000000',
+        fontFamily: 'Microsoft YaHei, sans-serif',
+        fontWeight: '400',
+        bgColor: '#000000',
+        bgAlpha: 60,
+        lineGap: 8,
+        borderRadius: 8,
+        barBorderWidth: 2,
+        barBorderColor: '#ffffff',
+        watermarkText: '么么哒哒',
+        watermarkPosition: 'top-center',
+        watermarkStyle: 'glass',
+        watermarkSize: 24,
+        watermarkAlpha: 70
+    },
+    captions: [],
+    isGenerated: false
+};
+
+// ==========================================
 // DOM Elements
-const uploadArea = document.getElementById('uploadArea');
-const fileInput = document.getElementById('fileInput');
-const demoPreview = document.getElementById('demoPreview');
-const previewImage = document.getElementById('previewImage');
-const previewCaption = document.getElementById('previewCaption');
-const changeImageBtn = document.getElementById('changeImage');
-const regenerateBtn = document.getElementById('regenerateCaption');
-const captionText = document.querySelector('.caption-text');
-const heroCaptionText = document.querySelector('.photo-caption .caption-text');
+// ==========================================
+const elements = {
+    // Upload
+    uploadZone: document.getElementById('uploadZone'),
+    fileInput: document.getElementById('fileInput'),
+    fileInfo: document.getElementById('fileInfo'),
+    fileName: document.getElementById('fileName'),
+    replaceFile: document.getElementById('replaceFile'),
 
-// Sample captions for the typing animation
-const sampleCaptions = [
-    "在群山的怀抱中，我找到了内心的平静...",
-    "日落时分的金色光芒，是大自然最温柔的告别...",
-    "每一次旅行，都是与自己的一次重逢...",
-    "山川湖海，不及此刻心中的澎湃...",
-    "站在世界之巅，感受风的自由..."
-];
+    // Settings
+    barHeight: document.getElementById('barHeight'),
+    barHeightValue: document.getElementById('barHeightValue'),
+    fontSize: document.getElementById('fontSize'),
+    fontSizeValue: document.getElementById('fontSizeValue'),
+    fontColor: document.getElementById('fontColor'),
+    strokeColor: document.getElementById('strokeColor'),
+    fontFamily: document.getElementById('fontFamily'),
+    fontWeight: document.getElementById('fontWeight'),
+    bgColor: document.getElementById('bgColor'),
+    bgAlpha: document.getElementById('bgAlpha'),
+    bgAlphaValue: document.getElementById('bgAlphaValue'),
+    lineGap: document.getElementById('lineGap'),
+    lineGapValue: document.getElementById('lineGapValue'),
+    borderRadius: document.getElementById('borderRadius'),
+    borderRadiusValue: document.getElementById('borderRadiusValue'),
+    barBorderWidth: document.getElementById('barBorderWidth'),
+    barBorderValue: document.getElementById('barBorderValue'),
+    barBorderColor: document.getElementById('barBorderColor'),
 
-// Sample captions for demo
-const demoCaptions = [
-    "在这片壮丽的风景中，时光仿佛静止了...",
-    "大自然的画笔，勾勒出最动人的画卷...",
-    "每一步攀登，都是为了更好的风景...",
-    "远山的呼唤，是心灵最深处的向往...",
-    "云海翻涌间，看见生命的辽阔..."
-];
+    // Watermark
+    watermarkText: document.getElementById('watermarkText'),
+    watermarkPosition: document.getElementById('watermarkPosition'),
+    watermarkStyle: document.getElementById('watermarkStyle'),
+    watermarkSize: document.getElementById('watermarkSize'),
+    watermarkSizeValue: document.getElementById('watermarkSizeValue'),
+    watermarkAlpha: document.getElementById('watermarkAlpha'),
+    watermarkAlphaValue: document.getElementById('watermarkAlphaValue'),
 
-// Typing animation function
-function typeWriter(element, text, speed = 80) {
-    return new Promise((resolve) => {
-        let i = 0;
-        element.textContent = '';
+    // Text
+    captionText: document.getElementById('captionText'),
+    lineCount: document.getElementById('lineCount'),
 
-        function type() {
-            if (i < text.length) {
-                element.textContent += text.charAt(i);
-                i++;
-                setTimeout(type, speed + Math.random() * 40);
-            } else {
-                resolve();
-            }
-        }
+    // Preview
+    previewContainer: document.getElementById('previewContainer'),
+    placeholder: document.getElementById('placeholder'),
+    previewCanvas: document.getElementById('previewCanvas'),
+    dimensions: document.getElementById('dimensions'),
+    warning: document.getElementById('warning'),
+    warningText: document.getElementById('warningText'),
 
-        type();
-    });
+    // Actions
+    generateBtn: document.getElementById('generateBtn'),
+    downloadBtn: document.getElementById('downloadBtn'),
+    status: document.getElementById('status'),
+
+    // Export
+    exportCanvas: document.getElementById('exportCanvas')
+};
+
+// ==========================================
+// Utility Functions
+// ==========================================
+function hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha / 100})`;
 }
 
-// Start hero caption animation
-async function animateHeroCaption() {
-    if (!heroCaptionText) return;
-
-    const captions = [
-        "远山呼唤，心灵归处...",
-        "群山之中，遇见宁静...",
-        "登高望远，心随云动..."
-    ];
-
-    let index = 0;
-
-    while (true) {
-        await typeWriter(heroCaptionText, captions[index], 100);
-        await new Promise(r => setTimeout(r, 3000));
-
-        // Clear effect
-        for (let i = captions[index].length; i >= 0; i--) {
-            heroCaptionText.textContent = captions[index].substring(0, i);
-            await new Promise(r => setTimeout(r, 30));
-        }
-
-        await new Promise(r => setTimeout(r, 500));
-        index = (index + 1) % captions.length;
-    }
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Initialize hero animation when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(animateHeroCaption, 1000);
-});
-
-// File Upload Handling
-if (uploadArea && fileInput) {
-    // Click to upload
-    uploadArea.addEventListener('click', () => {
-        fileInput.click();
-    });
-
-    // Drag and drop
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.parentElement.classList.add('dragover');
-    });
-
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.parentElement.classList.remove('dragover');
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.parentElement.classList.remove('dragover');
-
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFile(files[0]);
-        }
-    });
-
-    // File input change
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
-        }
-    });
+function showStatus(message, type = 'success') {
+    elements.status.textContent = message;
+    elements.status.className = 'status ' + type;
+    setTimeout(() => {
+        elements.status.className = 'status';
+    }, 3000);
 }
 
-// Handle file upload
+function parseCaptions(text) {
+    return text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .slice(0, 50);
+}
+
+// ==========================================
+// Image Upload
+// ==========================================
 function handleFile(file) {
-    if (!file.type.startsWith('image/')) {
-        alert('请上传图片文件（JPG、PNG、WebP）');
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+        showStatus('请上传 JPG、PNG 或 WebP 格式的图片', 'error');
+        return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+        showStatus('图片大小不能超过 20MB', 'error');
         return;
     }
 
     const reader = new FileReader();
     reader.onload = (e) => {
-        showPreview(e.target.result);
+        const img = new Image();
+        img.onload = () => {
+            state.image = img;
+            state.imageFile = file;
+            state.isGenerated = false;
+
+            // Update UI
+            elements.fileName.textContent = `${file.name} (${formatBytes(file.size)})`;
+            elements.fileInfo.style.display = 'flex';
+            elements.uploadZone.style.display = 'none';
+            elements.placeholder.style.display = 'none';
+            elements.previewCanvas.style.display = 'block';
+            elements.dimensions.textContent = `${img.width} x ${img.height}`;
+
+            // Enable buttons
+            elements.generateBtn.disabled = false;
+
+            // Initial render
+            renderPreview();
+            showStatus('图片上传成功');
+        };
+        img.src = e.target.result;
     };
     reader.readAsDataURL(file);
 }
 
-// Show preview with caption generation
-function showPreview(imageSrc) {
-    if (!previewImage || !demoPreview || !uploadArea) return;
+function resetFile() {
+    state.image = null;
+    state.imageFile = null;
+    state.isGenerated = false;
 
-    previewImage.src = imageSrc;
-    uploadArea.parentElement.style.display = 'none';
-    demoPreview.style.display = 'block';
+    elements.fileInput.value = '';
+    elements.fileInfo.style.display = 'none';
+    elements.uploadZone.style.display = 'block';
+    elements.placeholder.style.display = 'block';
+    elements.previewCanvas.style.display = 'none';
+    elements.dimensions.textContent = '-- x --';
+    elements.warning.style.display = 'none';
 
-    // Reset caption
-    previewCaption.innerHTML = '正在分析图片<span class="loading-dots">...</span>';
-
-    // Simulate AI processing
-    setTimeout(() => {
-        previewCaption.innerHTML = '正在生成字幕<span class="loading-dots">...</span>';
-    }, 1500);
-
-    // Generate random caption
-    setTimeout(() => {
-        const randomCaption = demoCaptions[Math.floor(Math.random() * demoCaptions.length)];
-        typeWriterEffect(previewCaption, randomCaption);
-    }, 3000);
+    elements.downloadBtn.disabled = true;
 }
 
-// Type writer effect for preview caption
-function typeWriterEffect(element, text) {
-    element.innerHTML = '';
-    element.style.fontFamily = 'var(--font-mono)';
-
-    let i = 0;
-    function type() {
-        if (i < text.length) {
-            element.textContent += text.charAt(i);
-            i++;
-            setTimeout(type, 60);
-        }
-    }
-    type();
-}
-
-// Change image button
-if (changeImageBtn && fileInput) {
-    changeImageBtn.addEventListener('click', () => {
-        fileInput.click();
-    });
-}
-
-// Regenerate caption button
-if (regenerateBtn && previewCaption) {
-    regenerateBtn.addEventListener('click', () => {
-        previewCaption.innerHTML = '正在重新生成<span class="loading-dots">...</span>';
-
-        setTimeout(() => {
-            const randomCaption = demoCaptions[Math.floor(Math.random() * demoCaptions.length)];
-            typeWriterEffect(previewCaption, randomCaption);
-        }, 1500);
-    });
-}
-
-// Handle new file selection when preview is shown
-if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0 && demoPreview.style.display !== 'none') {
-            handleFile(e.target.files[0]);
-        }
-    });
-}
-
-// Smooth scroll for navigation links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-    });
+// Upload event listeners
+elements.uploadZone.addEventListener('click', () => {
+    elements.fileInput.click();
 });
 
-// Navbar scroll effect
-const nav = document.querySelector('.nav');
-let lastScroll = 0;
+elements.fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+    }
+});
 
-window.addEventListener('scroll', () => {
-    const currentScroll = window.pageYOffset;
+elements.replaceFile.addEventListener('click', () => {
+    resetFile();
+    elements.fileInput.click();
+});
 
-    if (currentScroll > 100) {
-        nav.style.background = 'rgba(13, 12, 11, 0.95)';
-        nav.style.backdropFilter = 'blur(20px)';
+// Drag and drop
+elements.uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    elements.uploadZone.classList.add('dragover');
+});
+
+elements.uploadZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    elements.uploadZone.classList.remove('dragover');
+});
+
+elements.uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    elements.uploadZone.classList.remove('dragover');
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFile(files[0]);
+    }
+});
+
+// ==========================================
+// Settings Handlers
+// ==========================================
+function updateSetting(key, value) {
+    state.settings[key] = value;
+
+    // Update display values
+    const displayMap = {
+        barHeight: elements.barHeightValue,
+        fontSize: elements.fontSizeValue,
+        lineGap: elements.lineGapValue,
+        borderRadius: elements.borderRadiusValue
+    };
+
+    if (displayMap[key]) {
+        displayMap[key].textContent = value + 'px';
+    }
+
+    if (key === 'bgAlpha') {
+        elements.bgAlphaValue.textContent = value + '%';
+    }
+
+    // Re-render if image exists
+    if (state.image) {
+        renderPreview();
+    }
+}
+
+// Slider inputs
+elements.barHeight.addEventListener('input', (e) => updateSetting('barHeight', parseInt(e.target.value)));
+elements.fontSize.addEventListener('input', (e) => updateSetting('fontSize', parseInt(e.target.value)));
+elements.lineGap.addEventListener('input', (e) => updateSetting('lineGap', parseInt(e.target.value)));
+elements.borderRadius.addEventListener('input', (e) => updateSetting('borderRadius', parseInt(e.target.value)));
+elements.bgAlpha.addEventListener('input', (e) => updateSetting('bgAlpha', parseInt(e.target.value)));
+
+// Color inputs
+elements.fontColor.addEventListener('input', (e) => {
+    updateSetting('fontColor', e.target.value);
+    e.target.nextElementSibling.textContent = e.target.value.toUpperCase();
+});
+
+elements.strokeColor.addEventListener('input', (e) => {
+    updateSetting('strokeColor', e.target.value);
+    e.target.nextElementSibling.textContent = e.target.value.toUpperCase();
+});
+
+elements.bgColor.addEventListener('input', (e) => {
+    updateSetting('bgColor', e.target.value);
+    e.target.nextElementSibling.textContent = e.target.value.toUpperCase();
+});
+
+// Select inputs
+elements.fontFamily.addEventListener('change', (e) => {
+    updateSetting('fontFamily', e.target.value);
+});
+
+elements.fontWeight.addEventListener('change', (e) => {
+    updateSetting('fontWeight', e.target.value);
+});
+
+// Bar border
+elements.barBorderWidth.addEventListener('input', (e) => {
+    updateSetting('barBorderWidth', parseInt(e.target.value));
+    e.target.nextElementSibling.textContent = e.target.value + 'px';
+});
+
+elements.barBorderColor.addEventListener('input', (e) => {
+    updateSetting('barBorderColor', e.target.value);
+    e.target.nextElementSibling.textContent = e.target.value.toUpperCase();
+});
+
+// Watermark
+elements.watermarkText.addEventListener('input', (e) => {
+    updateSetting('watermarkText', e.target.value);
+});
+
+elements.watermarkPosition.addEventListener('change', (e) => {
+    updateSetting('watermarkPosition', e.target.value);
+});
+
+elements.watermarkStyle.addEventListener('change', (e) => {
+    updateSetting('watermarkStyle', e.target.value);
+});
+
+elements.watermarkSize.addEventListener('input', (e) => {
+    updateSetting('watermarkSize', parseInt(e.target.value));
+    elements.watermarkSizeValue.textContent = e.target.value + 'px';
+});
+
+elements.watermarkAlpha.addEventListener('input', (e) => {
+    updateSetting('watermarkAlpha', parseInt(e.target.value));
+    elements.watermarkAlphaValue.textContent = e.target.value + '%';
+});
+
+// ==========================================
+// Text Input
+// ==========================================
+elements.captionText.addEventListener('input', (e) => {
+    state.captions = parseCaptions(e.target.value);
+    elements.lineCount.textContent = `${state.captions.length} / 50 行`;
+
+    if (state.image) {
+        renderPreview();
+    }
+});
+
+// ==========================================
+// Canvas Rendering
+// ==========================================
+function renderPreview() {
+    if (!state.image) return;
+
+    const canvas = elements.previewCanvas;
+    const ctx = canvas.getContext('2d');
+    const img = state.image;
+    const s = state.settings;
+
+    // Calculate captions area height
+    const captionsHeight = state.captions.length > 0
+        ? state.captions.length * s.barHeight + (state.captions.length - 1) * s.lineGap
+        : 0;
+
+    // Set canvas size to match image + captions area (captions below image)
+    canvas.width = img.width;
+    canvas.height = img.height + captionsHeight;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw image at top
+    ctx.drawImage(img, 0, 0);
+
+    // Draw watermark on image
+    drawWatermark(ctx, img.width, img.height);
+
+    // Draw captions below image
+    if (state.captions.length > 0) {
+        drawCaptions(ctx, img.width, img.height, captionsHeight);
+    }
+}
+
+function drawWatermark(ctx, width, height) {
+    const s = state.settings;
+    const watermarkText = s.watermarkText || '么么哒哒';
+    const fontSize = s.watermarkSize;
+
+    // Calculate position
+    let x, y;
+    const padding = 20;
+
+    switch (s.watermarkPosition) {
+        case 'top-left':
+            x = padding;
+            y = padding;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            break;
+        case 'top-right':
+            x = width - padding;
+            y = padding;
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'top';
+            break;
+        case 'top-center':
+            x = width / 2;
+            y = padding;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            break;
+        case 'bottom-left':
+            x = padding;
+            y = height - padding;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'bottom';
+            break;
+        case 'bottom-right':
+            x = width - padding;
+            y = height - padding;
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            break;
+        case 'bottom-center':
+            x = width / 2;
+            y = height - padding;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            break;
+        case 'center':
+            x = width / 2;
+            y = height / 2;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            break;
+        default:
+            x = width / 2;
+            y = padding;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+    }
+
+    ctx.font = `500 ${fontSize}px "Microsoft YaHei", sans-serif`;
+
+    // Measure text for background
+    const metrics = ctx.measureText(watermarkText);
+    const textWidth = metrics.width;
+    const textHeight = fontSize;
+    const bgPadding = 8;
+    const bgX = x - (ctx.textAlign === 'center' ? textWidth / 2 : ctx.textAlign === 'right' ? textWidth : 0) - bgPadding;
+    const bgY = y - (ctx.textBaseline === 'middle' ? textHeight / 2 : ctx.textBaseline === 'bottom' ? textHeight : 0) - bgPadding;
+    const bgWidth = textWidth + bgPadding * 2;
+    const bgHeight = textHeight + bgPadding * 2;
+
+    // Draw based on style
+    switch (s.watermarkStyle) {
+        case 'glass':
+            // Glassmorphism effect
+            ctx.save();
+            ctx.fillStyle = `rgba(255, 255, 255, ${s.watermarkAlpha / 100 * 0.15})`;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${s.watermarkAlpha / 100 * 0.3})`;
+            ctx.lineWidth = 1;
+            roundRect(ctx, bgX, bgY, bgWidth, bgHeight, 6);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+
+            // Text with glow
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 4;
+            ctx.fillStyle = `rgba(255, 255, 255, ${s.watermarkAlpha / 100})`;
+            ctx.fillText(watermarkText, x, y);
+            ctx.restore();
+            break;
+
+        case 'solid':
+            // Solid background
+            ctx.save();
+            ctx.fillStyle = `rgba(0, 0, 0, ${s.watermarkAlpha / 100})`;
+            roundRect(ctx, bgX, bgY, bgWidth, bgHeight, 4);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.fillText(watermarkText, x, y);
+            break;
+
+        case 'outline':
+            // Outline style
+            ctx.strokeStyle = s.strokeColor;
+            ctx.lineWidth = 2;
+            ctx.strokeText(watermarkText, x, y);
+
+            ctx.fillStyle = `rgba(255, 255, 255, ${s.watermarkAlpha / 100})`;
+            ctx.fillText(watermarkText, x, y);
+            break;
+
+        case 'shadow':
+            // Shadow style
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.fillStyle = `rgba(255, 255, 255, ${s.watermarkAlpha / 100})`;
+            ctx.fillText(watermarkText, x, y);
+            ctx.restore();
+            break;
+    }
+}
+
+function drawCaptions(ctx, imgWidth, imgHeight, captionsHeight) {
+    const s = state.settings;
+    const captions = state.captions;
+
+    // Start position from image bottom (captions are below image)
+    let currentY = imgHeight;
+
+    // Set font
+    ctx.font = `${s.fontWeight} ${s.fontSize}px ${s.fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    captions.forEach((text, index) => {
+        // Draw background bar
+        const bgColor = hexToRgba(s.bgColor, s.bgAlpha);
+        ctx.fillStyle = bgColor;
+
+        if (s.borderRadius > 0) {
+            roundRect(ctx, 0, currentY, imgWidth, s.barHeight, s.borderRadius);
+            ctx.fill();
+        } else {
+            ctx.fillRect(0, currentY, imgWidth, s.barHeight);
+        }
+
+        // Draw border if width > 0
+        if (s.barBorderWidth > 0) {
+            ctx.strokeStyle = s.barBorderColor;
+            ctx.lineWidth = s.barBorderWidth;
+            if (s.borderRadius > 0) {
+                roundRect(ctx, s.barBorderWidth / 2, currentY + s.barBorderWidth / 2,
+                    imgWidth - s.barBorderWidth, s.barHeight - s.barBorderWidth,
+                    Math.max(0, s.borderRadius - s.barBorderWidth / 2));
+                ctx.stroke();
+            } else {
+                ctx.strokeRect(s.barBorderWidth / 2, currentY + s.barBorderWidth / 2,
+                    imgWidth - s.barBorderWidth, s.barHeight - s.barBorderWidth);
+            }
+        }
+
+        // Calculate text position
+        const textX = imgWidth / 2;
+        const textY = currentY + s.barHeight / 2;
+
+        // Draw text stroke
+        ctx.strokeStyle = s.strokeColor;
+        ctx.lineWidth = 2;
+        ctx.strokeText(text, textX, textY);
+
+        // Draw text fill
+        ctx.fillStyle = s.fontColor;
+        ctx.fillText(text, textX, textY);
+
+        // Move to next line
+        currentY += s.barHeight + s.lineGap;
+    });
+}
+
+function roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+}
+
+function checkOverflow(canvasHeight) {
+    const s = state.settings;
+    const captions = state.captions;
+
+    const totalBarsHeight = captions.length * s.barHeight;
+    const totalGapHeight = (captions.length - 1) * s.lineGap;
+    const captionsTotalHeight = totalBarsHeight + totalGapHeight;
+
+    if (captionsTotalHeight > canvasHeight) {
+        elements.warning.style.display = 'flex';
+        elements.warningText.textContent = `字幕区域超出图片高度 (${captionsTotalHeight}px > ${canvasHeight}px)`;
     } else {
-        nav.style.background = 'linear-gradient(to bottom, var(--color-bg-primary) 0%, transparent 100%)';
-        nav.style.backdropFilter = 'blur(10px)';
+        elements.warning.style.display = 'none';
     }
-
-    lastScroll = currentScroll;
-});
-
-// Intersection Observer for scroll animations
-const observerOptions = {
-    root: null,
-    rootMargin: '0px',
-    threshold: 0.1
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-// Observe feature cards and steps
-document.querySelectorAll('.feature-card, .step').forEach(el => {
-    observer.observe(el);
-});
-
-// Parallax effect for hero visual
-const heroVisual = document.querySelector('.hero-visual');
-if (heroVisual && !window.matchMedia('(pointer: coarse)').matches) {
-    document.addEventListener('mousemove', (e) => {
-        const x = (e.clientX / window.innerWidth - 0.5) * 20;
-        const y = (e.clientY / window.innerHeight - 0.5) * 20;
-
-        heroVisual.style.transform = `translate(${x}px, ${y}px)`;
-    });
 }
 
-// Button click feedback
-document.querySelectorAll('.btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-        // Create ripple effect
-        const ripple = document.createElement('span');
-        ripple.style.cssText = `
-            position: absolute;
-            background: rgba(212, 165, 116, 0.3);
-            border-radius: 50%;
-            transform: scale(0);
-            animation: ripple 0.6s linear;
-            pointer-events: none;
-        `;
+// ==========================================
+// Generate & Download
+// ==========================================
+elements.generateBtn.addEventListener('click', () => {
+    if (!state.image) {
+        showStatus('请先上传图片', 'error');
+        return;
+    }
 
-        const rect = this.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height);
-        ripple.style.width = ripple.style.height = size + 'px';
-        ripple.style.left = e.clientX - rect.left - size / 2 + 'px';
-        ripple.style.top = e.clientY - rect.top - size / 2 + 'px';
+    if (state.captions.length === 0) {
+        showStatus('请输入字幕内容', 'error');
+        return;
+    }
 
-        this.style.position = 'relative';
-        this.style.overflow = 'hidden';
-        this.appendChild(ripple);
-
-        setTimeout(() => ripple.remove(), 600);
-    });
+    renderPreview();
+    state.isGenerated = true;
+    elements.downloadBtn.disabled = false;
+    showStatus('字幕图片生成成功！');
 });
 
-// Add ripple animation keyframes
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes ripple {
-        to {
-            transform: scale(4);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
+elements.downloadBtn.addEventListener('click', () => {
+    if (!state.isGenerated || !state.image) return;
 
-// Keyboard shortcuts
-document.addEventListener('keydown', (e) => {
-    // Ctrl/Cmd + U to focus upload
-    if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
-        e.preventDefault();
-        uploadArea?.click();
-    }
+    const canvas = elements.previewCanvas;
+    const link = document.createElement('a');
+
+    // Generate filename
+    const originalName = state.imageFile.name;
+    const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
+    const newFilename = `${nameWithoutExt}_caption.png`;
+
+    link.download = newFilename;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+    showStatus('图片已开始下载');
 });
 
-// Prefers reduced motion
-if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    document.querySelectorAll('.feature-card, .step').forEach(el => {
-        el.style.opacity = '1';
-        el.style.transform = 'none';
-        el.style.animation = 'none';
-    });
-}
+// ==========================================
+// Initialize
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Set initial values
+    elements.barHeightValue.textContent = state.settings.barHeight + 'px';
+    elements.fontSizeValue.textContent = state.settings.fontSize + 'px';
+    elements.lineGapValue.textContent = state.settings.lineGap + 'px';
+    elements.borderRadiusValue.textContent = state.settings.borderRadius + 'px';
+    elements.bgAlphaValue.textContent = state.settings.bgAlpha + '%';
+    elements.barBorderValue.textContent = state.settings.barBorderWidth + 'px';
+    elements.watermarkSizeValue.textContent = state.settings.watermarkSize + 'px';
+    elements.watermarkAlphaValue.textContent = state.settings.watermarkAlpha + '%';
 
-// Console greeting
-console.log('%c CaptionCraft ', 'background: #d4a574; color: #0d0c0b; font-size: 20px; font-weight: bold; padding: 8px 16px; border-radius: 8px;');
-console.log('%c 让每一张照片都有故事 ', 'color: #a8a39a; font-size: 14px;');
+    // Disable download initially
+    elements.downloadBtn.disabled = true;
+
+    console.log('%c CaptionCraft v2 ', 'background: #d4a574; color: #0d0c0b; font-size: 16px; font-weight: bold; padding: 8px 16px; border-radius: 8px;');
+    console.log('%c 已就绪 ', 'color: #a8a39a; font-size: 12px;');
+});
